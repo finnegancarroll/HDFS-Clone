@@ -5,3 +5,10 @@ Any changes to our Design Document are submitted to Canvas.
 To view our Sequence Diagrams please visit the Diagrams folder.
 
 To view the current code please visit Branches.
+
+Branches:
+----------
+
++ develop: Prototype for creating ec2 instances programmatically and to send messages to/from ec2 instances
+
++ prototypes: Prototype for sending files from client to ec2 or from ec2 to ec2
