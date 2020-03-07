@@ -18,9 +18,6 @@ CONST_CREATE = "create"
 CONST_READ = "read"
 CONST_LIST = "list"
 
-#Copies/Node count
-CONST_REP = 4
-
 #Block size in MB
 ###########################DONT FORGET TO CHANGE THIS BACK!!!
 CONST_BLOCK_SIZE = .5
@@ -82,10 +79,13 @@ def createCMD(filename, bucket):
     splitFile("file")
     #3. contact namenode (???????)
     
+    #STARTING DATANODE AND DATANODE COUNT HARDCODED FOR TESTING
+    sendTo = {'startNode' : 1, 'nodeCount' : 3, 'copies' : 3}
+    
     #4. get datanode addresses 
-
-    #5. submit http requests to datanodes directly, switching in a round robin way
-
+    
+    #5. submit http requests to datanodes directly
+    
     print(path)
     print(bucket)
 
@@ -108,7 +108,7 @@ def splitFile(fileName):
     fs.split()
     os.remove(CONST_DOWN + fileName)
 
-#Merge all blocks of the 
+#Merge all blocks of the file
 #Merges in order of fileNames array and result is placed in Downloads folder
 def mergeFile(blockNameArray, fileName):
     with open(CONST_DOWN + fileName, 'wb') as merged:
