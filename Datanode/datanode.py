@@ -15,11 +15,20 @@ def writeBlock():
   
     #Get the filename
     fileName = request.values['fileName']
+    #Get number of blocks sent
+    numBlocks = request.values['numBlocks']
 
-    #Get the binary and write it to upload directory
-    f = request.files['testpic_1.jfif']
-    if f:
-        f.save(os.path.join(UPLOAD_DIRECTORY, fileName))
+    #Split the filename at the file extension
+    splitName = fileName.split('.', 1)
+    
+    #Check for each block and save them if they exist
+    i = 0
+    while i < int(numBlocks):
+        i += 1
+        f = request.files[splitName[0] + '_' + str(i) + '.' + splitName[1]]
+        print(splitName[0] + '_' + str(i) + '.' +  splitName[1])
+        #Save block to upload dir with block name
+        f.save(os.path.join(UPLOAD_DIRECTORY, splitName[0] + '_' + str(i) + '.' + splitName[1]))
     
     print("Wrote new blocks")
     # Return 201 CREATED
