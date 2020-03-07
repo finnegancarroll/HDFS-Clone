@@ -4,7 +4,7 @@ import boto3
 import os
 
 app = Flask(__name__)
-UPLOAD_DIRECTORY = os.getcwd() + "\\Blocks\\"
+UPLOAD_DIRECTORY = "Blocks/"
 
 #Recieve blocks and save them to local folder
 @app.route('/blocks/', methods=['PUT'])
@@ -17,10 +17,11 @@ def writeBlock():
     fileName = request.values['fileName']
 
     #Get the binary and write it to upload directory
-    f = request.files['block_n']
+    f = request.files['testpic_1.jfif']
     if f:
         f.save(os.path.join(UPLOAD_DIRECTORY, fileName))
-        
+    
+    print("Wrote new blocks")
     # Return 201 CREATED
     return "", 201
 
