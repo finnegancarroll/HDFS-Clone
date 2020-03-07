@@ -79,6 +79,18 @@ def createCMD(fileName, bucket):
     print(blockNames)
     sendBlocks(addressList, blockNames, fileName)
 
+#$list "filename"
+#Retrieve the list of blocks associated with that file and the datanodes they live on 
+def listCMD(filename):
+    print(filename)
+    
+#$read "filename"
+#Download file from SUFS onto LOCAL machine
+def readCMD(filename):
+    print(filename)
+
+#########HELPER FUNCTIONS#########
+
 def sendBlocks(addrList, blockList, fileName):
     files = {}
 
@@ -100,18 +112,6 @@ def sendBlocks(addrList, blockList, fileName):
         url = "http://" + addr + ":" + str(CONST_DATANODE_PORT) + "/blocks/"
         r = req.put(url, files=files, data=values)
         print(r.status_code)
-    
-#$read "filename"
-#Download file from SUFS onto LOCAL machine
-def readCMD(filename):
-    print(filename)
-
-#$list "filename"
-#Retrieve the list of blocks associated with that file and the datanodes they live on 
-def listCMD(filename):
-    print(filename)
-
-#########HELPER FUNCTIONS#########
 
 #Returns a list of dns addresses for all running datanodes
 def getDatanodeAddressList():
