@@ -92,7 +92,8 @@ def sendBlocks(addrList, blockList, fileName):
         files[splitBlockDir[1]] = open(block,'rb')
     
     #Include filename
-    values = {'fileName': fileName}
+    values = {'fileName': fileName, 'numBlocks' : len(blockList)}
+    
     
     #Send to each Datanode in list
     for addr in addrList:
