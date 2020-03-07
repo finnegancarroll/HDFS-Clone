@@ -1,12 +1,13 @@
 #SUFS Client program
 
-import sys
-import os
-import os.path
-import boto3
-from os import path
 from fsplit.filesplit import FileSplit #pip3 install filesplit or pip2 install fsplit
 from flask import request
+import requests as req
+from os import path
+import os.path
+import boto3
+import sys
+import os
 
 #Download folder
 CONST_DOWN = "Downloads/" 
@@ -25,24 +26,15 @@ CONST_BLOCK_SIZE = .5
 #Bytes per MB
 CONST_BYTES_PER_MB = 1000000
 
+#Public port on datanode DNS
+CONST_DATANODE_PORT = 8000
+
 bucket = boto3.resource('s3').Bucket("termprojbucket")
+ec2 = boto3.resource('ec2')
 
 def main():
+
     initDirs()
-    
-    bucket.download_file("Test1.txt", CONST_DOWN+"test.jfif")
-    ########TESTING########
-    testFile = "test.jfif" 
-    testOutput = "out.jfif"
-    
-    #Split and example file
-    splitFile(testFile)
-    
-    #Merge an example chunk set
-    mergeFile(getBlockNames(testFile), testOutput)
-    
-    deleteBlocks(getBlockNames(testFile))
-    #######################
     
     active = True
     while active:
@@ -71,24 +63,43 @@ def main():
 
 #$create "filePath" "buckName"
 #Write specified file from s3 BUCKET into SUFS
-def createCMD(filename, bucket):
-    output_path = CONST_DOWN + "file"
-    #1. download file from s3
-    bucket.download_file(filename, output_path) 
-    #2. split file
-    splitFile("file")
-    #3. contact namenode (???????)
+def createCMD(fileName, bucket):
     
-    #STARTING DATANODE AND DATANODE COUNT HARDCODED FOR TESTING
-    sendTo = {'startNode' : 1, 'nodeCount' : 3, 'copies' : 3}
+    #Download file from s3
+    bucket.download_file(fileName, CONST_DOWN + fileName) 
     
-    #4. get datanode addresses 
+    #Split file
+    splitFile(fileName)
     
-    #5. submit http requests to datanodes directly
+    #Get datanode addresses 
+    addressList = getDatanodeAddressList()
     
-    print(path)
-    print(bucket)
+    #Upload file blocks
+    blockNames = getBlockNames(fileName)
+    print(blockNames)
+    sendBlocks(addressList, blockNames, fileName)
 
+def sendBlocks(addrList, blockList, fileName):
+    files = {}
+
+    #Add all file blocks
+    i = 1
+    for block in blockList:
+        #Block looks like CONST_DOWN/blockName
+        #But the key should just be blockName
+        #So we split at '/' and take the second half
+        splitBlockDir = block.split('/', 1)
+        files[splitBlockDir[1]] = open(block,'rb')
+    
+    #Include filename
+    values = {'fileName': fileName}
+    
+    #Send to each Datanode in list
+    for addr in addrList:
+        url = "http://" + addr + ":" + str(CONST_DATANODE_PORT) + "/blocks/"
+        r = req.put(url, files=files, data=values)
+        print(r.status_code)
+    
 #$read "filename"
 #Download file from SUFS onto LOCAL machine
 def readCMD(filename):
@@ -100,6 +111,20 @@ def listCMD(filename):
     print(filename)
 
 #########HELPER FUNCTIONS#########
+
+#Returns a list of dns addresses for all running datanodes
+def getDatanodeAddressList():
+    addressList = []
+
+    #Filter for running instances
+    instances = ec2.instances.filter(Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+    
+    for instance in instances:
+        if instance.tags != None:
+            for tag in instance.tags:
+                if ((tag["Key"] == 'Name') and (tag['Value'] == 'Datanode')):
+                    addressList.append(instance.public_dns_name)
+    return addressList
 
 #Splits a file in the downloads folder into blocks
 #Original file deleted
@@ -124,6 +149,7 @@ def deleteBlocks(blockList):
 #Returns all the blocks in the downloads folder associated with the designated file
 def getBlockNames(fileName):
     blockList = []
+    
     #split filename into name and extension
     nameArray = fileName.rsplit('.', 1)    
 
