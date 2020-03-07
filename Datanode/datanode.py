@@ -1,34 +1,36 @@
-from flask import Flask
+import flask
+from flask import Flask, request
 import boto3
-import time
-import json
-import threading
+import os
 
 app = Flask(__name__)
-sqs = boto3.resource('sqs')
-heartbeat_url = 'https://sqs.us-west-2.amazonaws.com/494640831729/heartbeat'
-heartbeat_queue = sqs.Queue(heartbeat_url)
+UPLOAD_DIRECTORY = os.getcwd() + "\\Blocks\\"
 
-def sendHeartbeat():
-    while(True):
-        heartbeat_queue.send_message(
-            MessageBody = open("inode", "r").read())
-        time.sleep(20 - time.time() % 20)
+#Recieve blocks and save them to local folder
+@app.route('/blocks/', methods=['PUT'])
+def writeBlock():
+    #Check for local folder
+    if not os.path.exists(UPLOAD_DIRECTORY):
+        os.makedirs(UPLOAD_DIRECTORY)
+  
+    #Get the filename
+    fileName = request.values['fileName']
 
-thread = threading.Thread(target=sendHeartbeat)
-thread.start()
+    #Get the binary and write it to upload directory
+    f = request.files['block_n']
+    if f:
+        f.save(os.path.join(UPLOAD_DIRECTORY, fileName))
+        
+    # Return 201 CREATED
+    return "", 201
 
 @app.route('/blocks/<blockname>', methods=['GET'])
 def readBlock(blockname):
     return open(blockname, "r"), 200
-
-@app.route('/blocks/', methods=['PUT'])
-def writeBlock():
-    print("writeBlock")
 
 @app.route('/blocks/<blockname>', methods=['POST'])
 def replicateBlock(blockname):
     print("replicateBlock")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(debug=True, host="0.0.0.0", port=8000)
