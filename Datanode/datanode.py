@@ -10,19 +10,26 @@ import os
 
 
 app = Flask(__name__)
+
+
+##TESTING VARIABLES, CHANGE FOR DEMO#####################
+#CHECK WHAT DAVE WANTS FOR THIS LATER~!
+CONST_INTERVAL = 15
+#REP FAC 1 FOR TESTING ONLY, CHANGE BEFORE DEMO!!!
+CONST_REP_FAC = 1
+
 UPLOAD_DIRECTORY = "Blocks/"
+CONST_PEM_KEY = "cpsc4910_1.pem"
+CONST_REMOTE_UPLOAD = "/home/ec2-user/Team7/Datanode/Blocks"
 INODE = 'inode'
 
 #Get my DNS
 response = requests.get('http://169.254.169.254/latest/meta-data/public-hostname')
 CONST_DNS = response.text 
-print(CONST_DNS)
 
-#CHECK WHAT DAVE WANTS FOR THIS LATER~!
-CONST_INTERVAL = 15
-
-#Init sqs resource
+#Init sqs and ec2 recourse
 sqs = boto3.resource('sqs')
+ec2 = boto3.resource('ec2')
 
 heartbeat_url = 'https://sqs.us-west-2.amazonaws.com/494640831729/heartbeat'
 heartbeat_queue = sqs.Queue(heartbeat_url)
@@ -56,39 +63,56 @@ def writeBlock():
     blocks = []
     for file in os.listdir(UPLOAD_DIRECTORY):
         blocks.append(file)
-    inode = {"id": os.getenv('DATANODE_ID'), "blocks": blocks}
+    inode = {"id": CONST_DNS, "blocks": blocks}
     open(INODE, "w+").write(json.dumps(inode))
     heartbeat_queue.send_message(MessageBody = open("inode", "r").read())
     
     blockList = getBlockNames(fileName)
-    print(blockList)
     
-    #forwardBlocks(blockList, 1)
+    forwardBlocks(blockList, CONST_REP_FAC)
     
     # Return 201 CREATED
     return "", 201
 
-#Orders datanodes by DNS and scps file blocks to the next n nodes in the list
+#Orders datanodes by DNS and scps file blocks to the next n nodes in the list that are not me
 def forwardBlocks(blockList, n):
-    response = requests.get('http://169.254.169.254/latest/meta-data/instance-id')
-    my_id = response.text
-   
-    i = 0
-    
     addrList = getDatanodeAddressList()
     
-    
+    #Blocks to replicate on new node
+    sendFiles = ""
     for block in blockList:
-        if i < n:
-            print(my_id)
+        sendFiles += " " + block
+    print(sendFiles)
+   
+    i = 0
+    #Loop through nodes
+    for address in addrList:
+        #Check if the node is not me and I still need to make replicas 
+        if address != CONST_DNS and i < n:
+            print(sendToInstance(CONST_PEM_KEY, sendFiles, address, CONST_REMOTE_UPLOAD))
+            i += 1
+
+@app.route('/blocks/<blockname>', methods=['GET'])
+def readBlock(blockname):
+    return open(blockname, "r"), 200
+
+@app.route('/blocks/<blockname>', methods=['POST'])
+def replicateBlock(blockname):
+    print("replicateBlock")
+
+#Send files to another ec2 instance through scp with ssh key
+def sendToInstance(keyPath, fileNames, instanceName, instancePath):
+    cmd = "scp -i " + keyPath + " " + fileNames + " ec2-user@" + instanceName + ":" + instancePath
+    print(cmd)
+    return os.system(cmd)
 
 #Send heartbeats,
 def sendHeartbeat():
     #Check for inode
     if not os.path.exists(INODE):
-        open("inode", "w+").write({'id' : CONST_DNS})
-    
-    #Send a single heartbeat
+        open("inode", "w+").write(json.dumps({'id' : CONST_DNS}))
+
+    #Send heartbeats
     while(True):
         heartbeat_queue.send_message(MessageBody = open("inode", "r").read())
         time.sleep(CONST_INTERVAL - time.time() % CONST_INTERVAL)
@@ -106,15 +130,6 @@ def getBlockNames(fileName):
     
     return blockList
 
-@app.route('/blocks/<blockname>', methods=['GET'])
-def readBlock(blockname):
-    return open(blockname, "r"), 200
-
-@app.route('/blocks/<blockname>', methods=['POST'])
-def replicateBlock(blockname):
-    print("replicateBlock")
-
-
 #Returns a list of dns addresses for all running datanodes
 def getDatanodeAddressList():
     addressList = []
@@ -129,9 +144,11 @@ def getDatanodeAddressList():
                     addressList.append(instance.public_dns_name)
     return addressList
 
+
+#Start constant heartbeat on separate thread
+thread = threading.Thread(target=sendHeartbeat)
+thread.start()
+
 if __name__ == "__main__":
-    #Start constant heartbeat on separate thread
-    thread = threading.Thread(target=sendHeartbeat)
-    thread.start()
     #Listen on ports
     app.run(debug=True, host="0.0.0.0", port=8000)
