@@ -71,13 +71,12 @@ def createCMD(fileName, bucket):
     #Split file
     splitFile(fileName)
     
-    #Get datanode addresses 
-    addressList = getDatanodeAddressList()
+    #GET DESIGNATED DATANODE ADDRESS FROM THE NAMENODE!!!
+    #CURENTLY HARDCODED FOR TESTING
+    address = "ec2-54-200-145-107.us-west-2.compute.amazonaws.com"
     
     #Upload file blocks
-    blockNames = getBlockNames(fileName)
-    print(blockNames)
-    sendBlocks(addressList, blockNames, fileName)
+    sendBlocks(address, getBlockNames(fileName), fileName)
 
 #$list "filename"
 #Retrieve the list of blocks associated with that file and the datanodes they live on 
@@ -91,7 +90,7 @@ def readCMD(filename):
 
 #########HELPER FUNCTIONS#########
 
-def sendBlocks(addrList, blockList, fileName):
+def sendBlocks(address, blockList, fileName):
     files = {}
 
     #Add all file blocks
@@ -106,26 +105,10 @@ def sendBlocks(addrList, blockList, fileName):
     #Include filename
     values = {'fileName': fileName, 'numBlocks' : len(blockList)}
     
-    
-    #Send to each Datanode in list
-    for addr in addrList:
-        url = "http://" + addr + ":" + str(CONST_DATANODE_PORT) + "/blocks/"
-        r = req.put(url, files=files, data=values)
-        print(r.status_code)
-
-#Returns a list of dns addresses for all running datanodes
-def getDatanodeAddressList():
-    addressList = []
-
-    #Filter for running instances
-    instances = ec2.instances.filter(Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
-    
-    for instance in instances:
-        if instance.tags != None:
-            for tag in instance.tags:
-                if ((tag["Key"] == 'Name') and (tag['Value'] == 'Datanode')):
-                    addressList.append(instance.public_dns_name)
-    return addressList
+    #Send to designated Datanode
+    url = "http://" + address + ":" + str(CONST_DATANODE_PORT) + "/blocks/"
+    r = req.put(url, files=files, data=values)
+    print(r.status_code)
 
 #Splits a file in the downloads folder into blocks
 #Original file deleted
