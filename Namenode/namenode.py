@@ -5,28 +5,56 @@ import time
 import json
 import threading
 
+MSG_IN_RATE = 10
+
+#Time it takes for a node to timeout in seconds
+#THESE WILL NEED TO BE CHANGED BEFORE DEMO, UPDATE TIME IS SUPPOSED TO BE 30 AND TIMEOUT IS UP TO US??? DOUBLE CHECK TIMEOUT
+CONST_SLEEP_INTERVAL = 20
+CONST_SQS_POLL_RATE = 10
+CONST_TIMEOUT = 2
+
 app = Flask(__name__)
 sqs = boto3.resource('sqs')
 heartbeat_queue = sqs.Queue('https://sqs.us-west-2.amazonaws.com/494640831729/heartbeat')
+#Dictionary of datanodes by key DNS name
 datanodes_dict = {}
 files_dict = {}
 
 def check_queue():
     while(True):
-        messages = heartbeat_queue.receive_messages(MaxNumberOfMessages=10, WaitTimeSeconds=10)
+        #Keys marked for deletion
+        #Note: Must remove keys this way because you cannot change a dictionary while iterating over it
+        delKeys = []
+        
+        #Get next set of messages in SQS
+        messages = heartbeat_queue.receive_messages(MaxNumberOfMessages=MSG_IN_RATE, WaitTimeSeconds=CONST_SQS_POLL_RATE)
+        
+        #Consume messages
+        #Note: 10 messages consumed at once, namenode is updated, and then status is printed
         for message in messages:
             msgDict = json.loads(message.body)
             parse_heartbeat_messages(msgDict)
 
             message.delete()
         
+        #Print time since last heartbeat for every recorded non timedout datanode
         for key in datanodes_dict:
             if ((datanodes_dict[key])["updated"] == False):
                 (datanodes_dict[key])["time_since_last_heartbeat"] += 1
             print("ID: " + key + " HEARTBEAT: " + str(datanodes_dict[key]["time_since_last_heartbeat"]))
-            datanodes_dict[key]["updated"] = False      
-
-        time.sleep(20 - time.time() % 20)
+            datanodes_dict[key]["updated"] = False
+            #Check for node timeout
+            if datanodes_dict[key]["time_since_last_heartbeat"] >= CONST_TIMEOUT:
+                print("ID: " + key + " HAS TIMED OUT -> MARKING DEAD")
+                #Remove dead node
+                delKeys.append(key)
+        
+        #Actually remove the dead nodes from the dict
+        for key in delKeys:
+            del datanodes_dict[key]
+        
+        #Sleep till the next 
+        time.sleep(CONST_SLEEP_INTERVAL - time.time() % CONST_SLEEP_INTERVAL)
 
 def parse_heartbeat_messages(msgDict):
     msgId = msgDict["id"]
