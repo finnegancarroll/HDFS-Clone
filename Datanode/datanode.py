@@ -32,6 +32,11 @@ ec2 = boto3.resource('ec2')
 heartbeat_url = 'https://sqs.us-west-2.amazonaws.com/494640831729/heartbeat'
 heartbeat_queue = sqs.Queue(heartbeat_url)
 
+@app.route('/blocks/<blockname>', methods=['GET'])
+def readBlock(blockname):
+    #TODO
+    return open(blockname, "r"), 200
+
 #Recieve blocks and save them to local folder
 @app.route('/blocks/', methods=['PUT'])
 def writeBlock():
@@ -95,14 +100,6 @@ def forwardBlocks(blockList, n):
         if address != CONST_DNS and i < n:
             print(sendToInstance(CONST_PEM_KEY, sendFiles, address, CONST_REMOTE_UPLOAD))
             i += 1
-
-@app.route('/blocks/<blockname>', methods=['GET'])
-def readBlock(blockname):
-    return open(blockname, "r"), 200
-
-@app.route('/blocks/<blockname>', methods=['POST'])
-def replicateBlock(blockname):
-    print("replicateBlock")
 
 #Send files to another ec2 instance through scp with ssh key
 def sendToInstance(keyPath, fileNames, instanceName, instancePath):
