@@ -21,10 +21,12 @@ def check_queue():
             message.delete()
 
         for key, value in datanodes_dict.items():
-            if (value['updated'] == False):
-                value['time_since_last_heartbeat'] += 1
-            value['updated'] = False
+            if (value["updated"] == False):
+                value["time_since_last_heartbeat"] += 1
+            value["updated"] = False
+            print("ID: " + key + " HEARTBEAT: " + value["time_since_last_heartbeat"])
 
+        print(files_dict)
         time.sleep(10 - time.time() % 10)
 
 def parse_heartbeat_messages(msgDict):
@@ -41,8 +43,8 @@ def parse_heartbeat_messages(msgDict):
     if (not datanodes_dict.get(msgId)):
         datanodes_dict[msgId] = heartbeat_dict
     
-    datanodes_dict[msgId]['time_since_last_heartbeat'] = 0
-    datanodes_dict[msgId]['updated'] = True
+    datanodes_dict[msgId]["time_since_last_heartbeat"] = 0
+    datanodes_dict[msgId]["updated"] = True
    
 thread = threading.Thread(target=check_queue)
 thread.start() 
