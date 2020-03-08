@@ -6,6 +6,7 @@ import requests as req
 from os import path
 import os.path
 import boto3
+import json
 import sys
 import os
 
@@ -73,16 +74,52 @@ def createCMD(fileName, bucket):
     
     #GET DESIGNATED DATANODE ADDRESS FROM THE NAMENODE!!!
     #CURENTLY HARDCODED FOR TESTING
-    address = "ec2-52-36-160-84.us-west-2.compute.amazonaws.com"
+    address = "ec2-54-212-45-47.us-west-2.compute.amazonaws.com"
     
     #Upload file blocks
     sendBlocks(address, getBlockNames(fileName), fileName)
 
 #$list "filename"
-#Retrieve the list of blocks associated with that file and the datanodes they live on 
+#Prints file, blocks, and block locations for filename
 def listCMD(filename):
-    print(filename)
+    #Get request returns dictionary of all blocks and datanodes
+    r = req.get("http://" + getNameNodeAddress() + ":8000/files")
+    formatList(r.text, filename)
     
+#Print the file/datanode/block string returned from namenode
+def formatList(outList, fileName):
+    print(outList)
+    
+    #Delete grabage chars
+    removeThese = {':' , '{', ']' , '[' , ':' , ',' , ' '}
+    for char in removeThese:
+        outList = outList.replace(char, '')
+    
+    #Tab DNS
+    outList = outList.replace('ec2', '    ec2')
+
+    #Devide the output by files
+    outList = outList.split('}')
+    
+    #Find fileLine
+    fileLine = ""
+    for fileInfo in outList:
+        lineHeader = "\"" + fileName + "\"" 
+        if lineHeader  == fileInfo[:len(lineHeader)]:
+            fileLine = fileInfo
+
+    #Split into fields
+    i = 0
+    fileFields = fileLine.split('"')
+    for field in fileFields:
+        if i == 1:
+            print("File Name: " + field)
+        elif i == 2:
+            print("\n---------Blocks---------\n" + field)
+        else:
+            print(field)
+        i += 1
+        
 #$read "filename"
 #Download file from SUFS onto LOCAL machine
 def readCMD(filename):
@@ -143,6 +180,18 @@ def getBlockNames(fileName):
         i +=1
     
     return blockList
+
+#Returns DNS for the current running namenode
+#Function will not consider multiple namenode cases
+def getNameNodeAddress():
+    #Filter for running instances
+    instances = ec2.instances.filter(Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+    
+    for instance in instances:
+        if instance.tags != None:
+            for tag in instance.tags:
+                if ((tag["Key"] == 'Name') and (tag['Value'] == 'Namenode')):
+                    return instance.public_dns_name
 
 #Create downloads folder if it does not exits
 def initDirs():   
