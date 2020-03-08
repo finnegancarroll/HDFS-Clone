@@ -73,7 +73,7 @@ def createCMD(fileName, bucket):
     
     #GET DESIGNATED DATANODE ADDRESS FROM THE NAMENODE!!!
     #CURENTLY HARDCODED FOR TESTING
-    address = "ec2-54-200-145-107.us-west-2.compute.amazonaws.com"
+    address = "ec2-52-36-160-84.us-west-2.compute.amazonaws.com"
     
     #Upload file blocks
     sendBlocks(address, getBlockNames(fileName), fileName)
