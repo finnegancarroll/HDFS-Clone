@@ -59,20 +59,26 @@ def writeBlock():
 
     print("Wrote new blocks")
     
-    #Update Inode with new block data
-    blocks = []
-    for file in os.listdir(UPLOAD_DIRECTORY):
-        blocks.append(file)
-    inode = {"id": CONST_DNS, "blocks": blocks}
-    open(INODE, "w+").write(json.dumps(inode))
+    #update inode and send post write heartbeat
+    updateInode()
     heartbeat_queue.send_message(MessageBody = open("inode", "r").read())
-    
+
     blockList = getBlockNames(fileName)
     
     forwardBlocks(blockList, CONST_REP_FAC)
     
     # Return 201 CREATED
     return "", 201
+
+#Update Inode with new block data
+def updateInode():
+    blocks = []
+    #Get block list
+    for file in os.listdir(UPLOAD_DIRECTORY):
+        blocks.append(file)
+    inode = {"id": CONST_DNS, "blocks": blocks}
+    #Write to inode
+    open(INODE, "w+").write(json.dumps(inode))
 
 #Orders datanodes by DNS and scps file blocks to the next n nodes in the list that are not me
 def forwardBlocks(blockList, n):
@@ -114,6 +120,7 @@ def sendHeartbeat():
 
     #Send heartbeats
     while(True):
+        updateInode()
         heartbeat_queue.send_message(MessageBody = open("inode", "r").read())
         time.sleep(CONST_INTERVAL - time.time() % CONST_INTERVAL)
 
@@ -143,7 +150,6 @@ def getDatanodeAddressList():
                 if ((tag["Key"] == 'Name') and (tag['Value'] == 'Datanode')):
                     addressList.append(instance.public_dns_name)
     return addressList
-
 
 #Start constant heartbeat on separate thread
 thread = threading.Thread(target=sendHeartbeat)
