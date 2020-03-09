@@ -10,7 +10,7 @@ import requests as req
 #Messages consumed at once
 MSG_IN_RATE = 10
 #Time between updates
-CONST_SLEEP_INTERVAL = 15
+CONST_SLEEP_INTERVAL = 22
 #How frequently the SQS updates
 CONST_SQS_POLL_RATE = 15
 #How many CONST_SLEEP_INTERVALs before we consider a node dead
@@ -115,10 +115,8 @@ def getNode():
 # given filename, return datanode containing file
 @app.route('/blocks/<string:filename>', methods=['GET'])
 def getDNFile(filename):
-    allFiles = files_dict
-    currFileDict = allFiles[filename]
-    
-    totalBlocks = 0
+    allSUFS$ create Textbook.pdf
+Status Code: 201alBlocks = 0
     for x in currFileDict:
         totalBlocks += 1
 
