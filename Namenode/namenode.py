@@ -4,6 +4,7 @@ import boto3
 import time
 import json
 import threading
+import random
 
 MSG_IN_RATE = 10
 
@@ -80,6 +81,15 @@ thread.start()
 @app.route('/files/', methods=['GET'])
 def listFiles():
     return json.dumps(files_dict), "200"
+
+# from the dict of current DN's, randomly choose one to initially write to
+@app.route('/files', methods=['PUT'])
+def getNode():
+    tempDNList = []
+    for datanode in datanodes_dict:
+        tempDNList.append(datanode)
+    addr = random.choice(tempDNList)
+    return addr, "200"
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)

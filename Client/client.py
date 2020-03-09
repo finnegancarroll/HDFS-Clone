@@ -59,7 +59,6 @@ def main():
             print("Inproper syntax")
             print("\"SUFS$ help\" for more options")   
 
-
 #########COMMAND LINE FUNCTIONS STUBS#########
 
 #$create "filePath" "buckName"
@@ -71,13 +70,13 @@ def createCMD(fileName, bucket):
     
     #Split file
     splitFile(fileName)
-    
-    #GET DESIGNATED DATANODE ADDRESS FROM THE NAMENODE!!!
-    #CURENTLY HARDCODED FOR TESTING
-    address = "ec2-54-212-45-47.us-west-2.compute.amazonaws.com"
-    
+   
+    #Get random datanode to put data on from the namenode
+    temp_req = req.put("http://" + getNameNodeAddress() + ":8000/files").text
+    namenode_req = "%s" %temp_req
+
     #Upload file blocks
-    sendBlocks(address, getBlockNames(fileName), fileName)
+    sendBlocks(namenode_req, getBlockNames(fileName), fileName)
 
 #$list "filename"
 #Prints file, blocks, and block locations for filename
@@ -85,11 +84,26 @@ def listCMD(filename):
     #Get request returns dictionary of all blocks and datanodes
     r = req.get("http://" + getNameNodeAddress() + ":8000/files")
     formatList(r.text, filename)
+  
+#$read "filename"
+#Download file from SUFS onto LOCAL machine
+def readCMD(filename):
     
+    #CURRENTLY FUNCTION GETS THE DESIGNATED FILE FROM HARD CODED DATANODE
+    #IN FUTURE WILL NEED TO GET DATANODE AND NUMBER OF BLOCKS FROM NAMENODE
+    
+    dataNodeDNS =  "ec2-54-212-45-47.us-west-2.compute.amazonaws.com" 
+    
+    r = req.get("http://" + dataNodeDNS + ":8000/blocks/" + filename)
+    file = open(CONST_DOWN + filename, "w+")
+    file.write(r.text)
+    file.close()
+    print(r)
+
+#########HELPER FUNCTIONS#########
+
 #Print the file/datanode/block string returned from namenode
 def formatList(outList, fileName):
-    print(outList)
-    
     #Delete grabage chars
     removeThese = {':' , '{', ']' , '[' , ':' , ',' , ' '}
     for char in removeThese:
@@ -119,13 +133,6 @@ def formatList(outList, fileName):
         else:
             print(field)
         i += 1
-        
-#$read "filename"
-#Download file from SUFS onto LOCAL machine
-def readCMD(filename):
-    print(filename)
-
-#########HELPER FUNCTIONS#########
 
 def sendBlocks(address, blockList, fileName):
     files = {}
