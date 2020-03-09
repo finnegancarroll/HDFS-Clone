@@ -90,7 +90,7 @@ def parse_heartbeat_messages(msgDict):
     datanodes_dict[msgId]["updated"] = True
 
 def replicateNode():
-    r = req.post("http://" + datanodes_dict.keys()[0] + ":8000/blocks")
+    r = req.post("http://" + list(datanodes_dict.keys())[0] + ":8000/blocks")
 
 thread = threading.Thread(target=check_queue)
 thread.start() 
