@@ -88,25 +88,36 @@ def listCMD(filename):
 #$read "filename"
 #Download file from SUFS onto LOCAL machine
 def readCMD(filename):
-    
-    #CURRENTLY FUNCTION GETS THE DESIGNATED FILE FROM HARD CODED DATANODE
-    #IN FUTURE WILL NEED TO GET DATANODE AND NUMBER OF BLOCKS FROM NAMENODE
-    
-    # dataNodeDNS =  "ec2-54-212-45-47.us-west-2.compute.amazonaws.com" 
-    
-    # r = req.get("http://" + dataNodeDNS + ":8000/blocks/" + filename)
+    #Splite the filename into name and file extension
+    fileNameSplit = filename.split('.')
+
+    #Get block num and datanode address from the namenode
     fileInfo = getFileInfo(filename)
-    dns = fileInfo["dns"]
+    dataNodeDNS = fileInfo["dns"]
     totalBlocks = fileInfo["blocks"]
-
-    print ("the dns: ", dns)
-    print ("total blcoks ", totalBlocks)
-
-    # #Save block to upload dir with block name
-    # file = open(CONST_DOWN + filename, "wb")
-    # file.write(r.content)
-    # file.close()
-    # print(r)
+    
+    print("Downloading Blocks")
+    
+    for i in range(0, totalBlocks):
+        blockName = fileNameSplit[0] + '_' + str(i + 1) + '.' + fileNameSplit[1]
+        print(blockName)
+        r = req.get("http://" + dataNodeDNS + ":8000/blocks/" + blockName)
+        
+        #Save block to download dir with block name
+        file = open(CONST_DOWN + blockName, "wb")
+        file.write(r.content)
+        file.close()
+   
+    blockList = getBlockNames(filename)
+    
+    #Merge the blocks back to original file
+    print("Merging blocks...")
+    mergeFile(blockList, filename)
+    
+    #Delete blocks
+    deleteBlocks(blockList)
+    
+    print("Status Code: " + str(r.status_code))
 
 #########HELPER FUNCTIONS#########
 
