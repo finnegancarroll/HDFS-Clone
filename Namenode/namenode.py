@@ -17,9 +17,6 @@ CONST_SQS_POLL_RATE = 10
 #So CONST_TIMEOUT * CONST_SLEEP_INTERVAL = about time in seconds till datanode is considered dead 
 CONST_TIMEOUT = 4
 
-#hold curr filename
-currFileName = ""
-
 app = Flask(__name__)
 sqs = boto3.resource('sqs')
 sqsclient = boto3.client('sqs')
@@ -86,7 +83,6 @@ def parse_heartbeat_messages(msgDict):
         for block in msgDict["blocks"]:
             blockNameArr = block.rsplit('.',1)
             fileName = blockNameArr[0].rsplit('_', 1)[0] + "." + blockNameArr[1]
-            currFileName = fileName
             
             if (not files_dict.get(fileName)): files_dict[fileName] = {}
             if(not files_dict[fileName].get(blockNameArr[0])): files_dict[fileName][blockNameArr[0]] = []
@@ -101,8 +97,7 @@ def parse_heartbeat_messages(msgDict):
 def replicateNode():
     replicationNode = list(datanodes_dict.keys())[0]
     print("REPLICATING USING: " + replicationNode)
-    print("The curr file name is: ", currFileName)
-    r = req.post("http://" + replicationNode + ":8000/blocks/" + currFileName) #send filename
+    r = req.post("http://" + replicationNode + ":8000/blocks/") #need to send filename
 
 thread = threading.Thread(target=check_queue)
 thread.start() 

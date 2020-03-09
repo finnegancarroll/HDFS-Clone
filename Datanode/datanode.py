@@ -42,7 +42,7 @@ def readBlock(fileName):
     return response
 
 #Recieve blocks and save them to local folder
-@app.route('/blocks/<string:currFileName>', methods=['PUT', 'POST'])
+@app.route('/blocks/', methods=['PUT', 'POST'])
 def writeBlocks():
     if (request.method == 'PUT'):
         #Check for local folder
@@ -79,7 +79,7 @@ def writeBlocks():
         return "", 201
     if (request.method == 'POST'):
         # hacky trigger to forward block
-        fileName = request.values['currFileName']
+        fileName = 'testpic.jfif' # HARCODED FOR TESTING
         blockList = getBlockNames(fileName)
         forwardBlocks(blockList[-1], 1)
         return "", 201
