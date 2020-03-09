@@ -101,6 +101,7 @@ def parse_heartbeat_messages(msgDict):
 def replicateNode():
     replicationNode = list(datanodes_dict.keys())[0]
     print("REPLICATING USING: " + replicationNode)
+    print("The curr file name is: ", currFileName)
     r = req.post("http://" + replicationNode + ":8000/blocks/" + currFileName) #send filename
 
 thread = threading.Thread(target=check_queue)
