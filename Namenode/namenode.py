@@ -10,16 +10,17 @@ import requests as req
 #Messages consumed at once
 MSG_IN_RATE = 10
 #Time between updates
-CONST_SLEEP_INTERVAL = 15
+CONST_SLEEP_INTERVAL = 10
 #How frequently the SQS updates
-CONST_SQS_POLL_RATE = 15
+CONST_SQS_POLL_RATE = 10
 #How many CONST_SLEEP_INTERVALs before we consider a node dead
 #So CONST_TIMEOUT * CONST_SLEEP_INTERVAL = about time in seconds till datanode is considered dead 
-CONST_TIMEOUT = 3
+CONST_TIMEOUT = 4
 
 app = Flask(__name__)
 sqs = boto3.resource('sqs')
 heartbeat_queue = sqs.Queue('https://sqs.us-west-2.amazonaws.com/494640831729/heartbeat')
+heartbeat_queue.purge_queue()
 #Dictionary of datanodes by key DNS name
 datanodes_dict = {}
 files_dict = {}
@@ -90,7 +91,9 @@ def parse_heartbeat_messages(msgDict):
     datanodes_dict[msgId]["updated"] = True
 
 def replicateNode():
-    r = req.post("http://" + list(datanodes_dict.keys())[0] + ":8000/blocks")
+    replicationNode = list(datanodes_dict.keys())[0]
+    print("REPLICATING USING: " + replicationNode)
+    r = req.post("http://" + replicationNode + ":8000/blocks/")
 
 thread = threading.Thread(target=check_queue)
 thread.start() 

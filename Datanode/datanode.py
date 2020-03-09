@@ -80,7 +80,7 @@ def writeBlocks():
     if (request.method == 'POST'):
         # hacky trigger to forward block
         blockList = getBlockNames(fileName)
-        forwardBlocks(blockList, CONST_REP_FAC)
+        forwardBlocks(blockList[-1], 1)
   
 #Update Inode with new block data
 def updateInode():
