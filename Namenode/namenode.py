@@ -41,6 +41,7 @@ def check_queue():
             message.delete()
         
         #Print time since last heartbeat for every recorded non timedout datanode
+        print("Heartbeat:")
         for key in datanodes_dict:
             if ((datanodes_dict[key])["updated"] == False):
                 (datanodes_dict[key])["time_since_last_heartbeat"] += 1
@@ -105,7 +106,7 @@ def getDNFile(filename):
 
     # for the current filename, get the first DNS (all blocks should be on this)
     valueList = list(currFileDict.values())
-    datanodeDNS = str(valueList[1])
+    datanodeDNS = str(valueList[0])
 
     #Delete grabage chars of the dict and list
     removeThese = {']', '[', "'"}
