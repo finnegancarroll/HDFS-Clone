@@ -15,7 +15,7 @@ CONST_SLEEP_INTERVAL = 10
 CONST_SQS_POLL_RATE = 10
 #How many CONST_SLEEP_INTERVALs before we consider a node dead
 #So CONST_TIMEOUT * CONST_SLEEP_INTERVAL = about time in seconds till datanode is considered dead 
-CONST_TIMEOUT = 4
+CONST_TIMEOUT = 3
 
 app = Flask(__name__)
 sqs = boto3.resource('sqs')
