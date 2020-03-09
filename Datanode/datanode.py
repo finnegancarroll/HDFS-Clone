@@ -12,7 +12,7 @@ import os
 app = Flask(__name__)
 
 #Interval at which we send block report/heartbeat
-CONST_INTERVAL = 20
+CONST_INTERVAL = 30
 #Additional nodes to forward blocks to
 CONST_REP_FAC = 2
 
@@ -42,40 +42,45 @@ def readBlock(fileName):
     return response
 
 #Recieve blocks and save them to local folder
-@app.route('/blocks/', methods=['PUT'])
+@app.route('/blocks/', methods=['PUT', 'POST'])
 def writeBlocks():
-    #Check for local folder
-    if not os.path.exists(UPLOAD_DIRECTORY):
-        os.makedirs(UPLOAD_DIRECTORY)
-  
-    #Get the filename
-    fileName = request.values['fileName']
-    #Get number of blocks sent
-    numBlocks = request.values['numBlocks']
+    if (methods == PUT):
+        #Check for local folder
+        if not os.path.exists(UPLOAD_DIRECTORY):
+            os.makedirs(UPLOAD_DIRECTORY)
+    
+        #Get the filename
+        fileName = request.values['fileName']
+        #Get number of blocks sent
+        numBlocks = request.values['numBlocks']
 
-    #Split the filename at the file extension
-    splitName = fileName.split('.', 1)
-    
-    #Check for each block and save them if they exist
-    i = 0
-    while i < int(numBlocks):
-        i += 1
-        f = request.files[splitName[0] + '_' + str(i) + '.' + splitName[1]]
-        #Save block to upload dir with block name
-        f.save(os.path.join(UPLOAD_DIRECTORY, splitName[0] + '_' + str(i) + '.' + splitName[1]))
+        #Split the filename at the file extension
+        splitName = fileName.split('.', 1)
+        
+        #Check for each block and save them if they exist
+        i = 0
+        while i < int(numBlocks):
+            i += 1
+            f = request.files[splitName[0] + '_' + str(i) + '.' + splitName[1]]
+            #Save block to upload dir with block name
+            f.save(os.path.join(UPLOAD_DIRECTORY, splitName[0] + '_' + str(i) + '.' + splitName[1]))
 
-    print("Wrote new blocks")
-    
-    #update inode and send post write heartbeat
-    updateInode()
-    heartbeat_queue.send_message(MessageBody = open("inode", "r").read())
+        print("Wrote new blocks")
+        
+        #update inode and send post write heartbeat
+        updateInode()
+        heartbeat_queue.send_message(MessageBody = open("inode", "r").read())
 
-    blockList = getBlockNames(fileName)
-    
-    forwardBlocks(blockList, CONST_REP_FAC)
-    
-    # Return 201 CREATED
-    return "", 201
+        blockList = getBlockNames(fileName)
+        
+        forwardBlocks(blockList, CONST_REP_FAC)
+        
+        # Return 201 CREATED
+        return "", 201
+    if (methods == POST):
+        # hacky trigger to forward block
+        blockList = getBlockNames(fileName)
+        forwardBlocks(blockList, CONST_REP_FAC)
   
 #Update Inode with new block data
 def updateInode():

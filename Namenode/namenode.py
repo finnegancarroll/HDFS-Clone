@@ -9,9 +9,9 @@ import random
 #Messages consumed at once
 MSG_IN_RATE = 10
 #Time between updates
-CONST_SLEEP_INTERVAL = 10
+CONST_SLEEP_INTERVAL = 15
 #How frequently the SQS updates
-CONST_SQS_POLL_RATE = 10
+CONST_SQS_POLL_RATE = 15
 #How many CONST_SLEEP_INTERVALs before we consider a node dead
 #So CONST_TIMEOUT * CONST_SLEEP_INTERVAL = about time in seconds till datanode is considered dead 
 CONST_TIMEOUT = 3
@@ -57,14 +57,14 @@ def check_queue():
         for key in delKeys:
             del datanodes_dict[key]
             #Remove dead nodes from being listed in the block ownership dict
-            #FIXME sometimes remove(key) provides ValueError, I suspect it's from the existence of an empty .jfif file in /Blocks/ in one of the datanodes 
             for files_key in files_dict:
                 for files_subKey in files_dict[files_key]:
                     try:
                         files_dict[files_key][files_subKey].remove(key)
                     except:
                         pass
-        
+            replicateNode()
+            
         print("FILES: ")
         print(files_dict)
         #Sleep till the next 
@@ -87,7 +87,10 @@ def parse_heartbeat_messages(msgDict):
     
     datanodes_dict[msgId]["time_since_last_heartbeat"] = 0
     datanodes_dict[msgId]["updated"] = True
-   
+
+def replicateNode():
+    r = req.post("http://" + datanodes_dict.keys()[0] + ":8000/blocks")
+
 thread = threading.Thread(target=check_queue)
 thread.start() 
 
