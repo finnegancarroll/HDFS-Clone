@@ -1,6 +1,4 @@
-#SUFS Client program
-
-from fsplit.filesplit import FileSplit #pip3 install filesplit or pip2 install fsplit
+from fsplit.filesplit import FileSplit
 from flask import request
 import requests as req
 from os import path
@@ -22,7 +20,7 @@ CONST_LIST = "list"
 
 #Block size in MB
 ###########################DONT FORGET TO CHANGE THIS BACK!!!
-CONST_BLOCK_SIZE = .5
+CONST_BLOCK_SIZE = 128
 
 #Bytes per MB
 CONST_BYTES_PER_MB = 1000000
@@ -76,7 +74,12 @@ def createCMD(fileName, bucket):
     namenode_req = "%s" %temp_req
 
     #Upload file blocks
-    sendBlocks(namenode_req, getBlockNames(fileName), fileName)
+    status_code = sendBlocks(namenode_req, getBlockNames(fileName), fileName)
+    
+    #Delete local blocks
+    deleteBlocks(getBlockNames(fileName))
+
+    print("Status Code: " + str(status_code))
 
 #$list "filename"
 #Prints file, blocks, and block locations for filename
@@ -84,23 +87,51 @@ def listCMD(filename):
     #Get request returns dictionary of all blocks and datanodes
     r = req.get("http://" + getNameNodeAddress() + ":8000/files")
     formatList(r.text, filename)
-  
+    print("Status Code: " + str(r.status_code))
+
 #$read "filename"
 #Download file from SUFS onto LOCAL machine
 def readCMD(filename):
+    #Splite the filename into name and file extension
+    fileNameSplit = filename.split('.')
+
+    #Get block num and datanode address from the namenode
+    fileInfo = getFileInfo(filename)
+    dataNodeDNS = fileInfo["dns"]
+    totalBlocks = fileInfo["blocks"]
     
-    #CURRENTLY FUNCTION GETS THE DESIGNATED FILE FROM HARD CODED DATANODE
-    #IN FUTURE WILL NEED TO GET DATANODE AND NUMBER OF BLOCKS FROM NAMENODE
+    print("Downloading Blocks")
     
-    dataNodeDNS =  "ec2-54-212-45-47.us-west-2.compute.amazonaws.com" 
+    for i in range(0, totalBlocks):
+        blockName = fileNameSplit[0] + '_' + str(i + 1) + '.' + fileNameSplit[1]
+        print(blockName)
+        r = req.get("http://" + dataNodeDNS + ":8000/blocks/" + blockName)
+        
+        #Save block to download dir with block name
+        file = open(CONST_DOWN + blockName, "wb")
+        file.write(r.content)
+        file.close()
+   
+    blockList = getBlockNames(filename)
     
-    r = req.get("http://" + dataNodeDNS + ":8000/blocks/" + filename)
-    file = open(CONST_DOWN + filename, "w+")
-    file.write(r.text)
-    file.close()
-    print(r)
+    #Merge the blocks back to original file
+    print("Merging blocks...")
+    mergeFile(blockList, filename)
+    
+    #Delete blocks
+    deleteBlocks(blockList)
+    
+    print("Status Code: " + str(r.status_code))
 
 #########HELPER FUNCTIONS#########
+
+#Gets the number of blocks and datanode associated with a file on the SUFS
+def getFileInfo(filename):
+    r = req.get("http://" + getNameNodeAddress() + ":8000/blocks/" + filename).text
+    reqToString = str(r)
+    fixReqFormat = reqToString.replace("'", "\"")
+    reqToJSON = json.loads(fixReqFormat)
+    return reqToJSON
 
 #Print the file/datanode/block string returned from namenode
 def formatList(outList, fileName):
@@ -134,6 +165,7 @@ def formatList(outList, fileName):
             print(field)
         i += 1
 
+#Sends all blocks to datanode at address
 def sendBlocks(address, blockList, fileName):
     files = {}
 
@@ -152,7 +184,7 @@ def sendBlocks(address, blockList, fileName):
     #Send to designated Datanode
     url = "http://" + address + ":" + str(CONST_DATANODE_PORT) + "/blocks/"
     r = req.put(url, files=files, data=values)
-    print(r.status_code)
+    return r.status_code
 
 #Splits a file in the downloads folder into blocks
 #Original file deleted
@@ -204,6 +236,6 @@ def getNameNodeAddress():
 def initDirs():   
     if not os.path.exists(CONST_DOWN):
         os.makedirs(CONST_DOWN)
-   
+
 if __name__ == '__main__':
     main()

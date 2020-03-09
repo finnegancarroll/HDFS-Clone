@@ -6,12 +6,14 @@ import json
 import threading
 import random
 
+#Messages consumed at once
 MSG_IN_RATE = 10
-
-#Time it takes for a node to timeout in seconds
-#THESE WILL NEED TO BE CHANGED BEFORE DEMO, UPDATE TIME IS SUPPOSED TO BE 30 AND TIMEOUT IS UP TO US??? DOUBLE CHECK TIMEOUT
-CONST_SLEEP_INTERVAL = 20
+#Time between updates
+CONST_SLEEP_INTERVAL = 10
+#How frequently the SQS updates
 CONST_SQS_POLL_RATE = 10
+#How many CONST_SLEEP_INTERVALs before we consider a node dead
+#So CONST_TIMEOUT * CONST_SLEEP_INTERVAL = about time in seconds till datanode is considered dead 
 CONST_TIMEOUT = 2
 
 app = Flask(__name__)
@@ -90,6 +92,30 @@ def getNode():
         tempDNList.append(datanode)
     addr = random.choice(tempDNList)
     return addr, "200"
+
+# given filename, return datanode containing file
+@app.route('/blocks/<string:filename>', methods=['GET'])
+def getDNFile(filename):
+    allFiles = files_dict
+    currFileDict = allFiles[filename]
+    
+    totalBlocks = 0
+    for x in currFileDict:
+        totalBlocks += 1
+
+    # for the current filename, get the first DNS (all blocks should be on this)
+    valueList = list(currFileDict.values())
+    datanodeDNS = str(valueList[1])
+
+    #Delete grabage chars of the dict and list
+    removeThese = {']', '[', "'"}
+    for char in removeThese:
+        datanodeDNS = datanodeDNS.replace(char, "")
+
+    resultDict = {'dns' : datanodeDNS, 'blocks' : totalBlocks}
+    
+    return json.dumps(resultDict), "200"
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
