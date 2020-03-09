@@ -1,7 +1,8 @@
-from flask import Flask, request
+from flask import Flask, request, make_response
 import threading
 import requests
 import os.path
+import codecs
 import boto3
 import flask
 import time
@@ -32,14 +33,18 @@ ec2 = boto3.resource('ec2')
 heartbeat_url = 'https://sqs.us-west-2.amazonaws.com/494640831729/heartbeat'
 heartbeat_queue = sqs.Queue(heartbeat_url)
 
-@app.route('/blocks/<blockname>', methods=['GET'])
-def readBlock(blockname):
-    #TODO
-    return open(blockname, "r"), 200
+#Return the specified block
+@app.route('/blocks/<fileName>', methods=['GET'])
+def readBlock(fileName):
+    path = UPLOAD_DIRECTORY + fileName
+    file = codecs.open(path, 'rb').read()
+    response = make_response()
+    response.data = file
+    return response
 
 #Recieve blocks and save them to local folder
 @app.route('/blocks/', methods=['PUT'])
-def writeBlock():
+def writeBlocks():
     #Check for local folder
     if not os.path.exists(UPLOAD_DIRECTORY):
         os.makedirs(UPLOAD_DIRECTORY)
@@ -72,7 +77,7 @@ def writeBlock():
     
     # Return 201 CREATED
     return "", 201
-
+  
 #Update Inode with new block data
 def updateInode():
     blocks = []
