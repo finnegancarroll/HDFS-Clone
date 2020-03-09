@@ -100,10 +100,6 @@ def readCMD(filename):
     file = open(CONST_DOWN + filename, "wb")
     file.write(r.content)
     file.close()
-    
-    #file = open(CONST_DOWN + filename, "w+")
-    #file.write(r.text)
-    #file.close()
     print(r)
 
 #########HELPER FUNCTIONS#########
