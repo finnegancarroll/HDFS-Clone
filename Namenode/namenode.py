@@ -5,6 +5,7 @@ import time
 import json
 import threading
 import random
+import requests as req
 
 #Messages consumed at once
 MSG_IN_RATE = 10
@@ -64,7 +65,7 @@ def check_queue():
                     except:
                         pass
             replicateNode()
-            
+
         print("FILES: ")
         print(files_dict)
         #Sleep till the next 
