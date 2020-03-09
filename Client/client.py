@@ -20,7 +20,7 @@ CONST_LIST = "list"
 
 #Block size in MB
 ###########################DONT FORGET TO CHANGE THIS BACK!!!
-CONST_BLOCK_SIZE = 128
+CONST_BLOCK_SIZE = 0.5
 
 #Bytes per MB
 CONST_BYTES_PER_MB = 1000000

@@ -9,12 +9,12 @@ import random
 #Messages consumed at once
 MSG_IN_RATE = 10
 #Time between updates
-CONST_SLEEP_INTERVAL = 20
+CONST_SLEEP_INTERVAL = 10
 #How frequently the SQS updates
 CONST_SQS_POLL_RATE = 10
 #How many CONST_SLEEP_INTERVALs before we consider a node dead
 #So CONST_TIMEOUT * CONST_SLEEP_INTERVAL = about time in seconds till datanode is considered dead 
-CONST_TIMEOUT = 2
+CONST_TIMEOUT = 3
 
 app = Flask(__name__)
 sqs = boto3.resource('sqs')
@@ -57,10 +57,16 @@ def check_queue():
         for key in delKeys:
             del datanodes_dict[key]
             #Remove dead nodes from being listed in the block ownership dict
+            #FIXME sometimes remove(key) provides ValueError, I suspect it's from the existence of an empty .jfif file in /Blocks/ in one of the datanodes 
             for files_key in files_dict:
                 for files_subKey in files_dict[files_key]:
-                    files_dict[files_key][files_subKey].remove(key)
+                    try:
+                        files_dict[files_key][files_subKey].remove(key)
+                    except:
+                        pass
         
+        print("FILES: ")
+        print(files_dict)
         #Sleep till the next 
         time.sleep(CONST_SLEEP_INTERVAL - time.time() % CONST_SLEEP_INTERVAL)
 
