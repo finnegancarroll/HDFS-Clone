@@ -44,18 +44,20 @@ def main():
             active = False
         elif inputStr == CONST_HELP:
             print("usage:")
-            print("create s3_file_name")
-            print("read SUFS_file_name")
-            print("list SUFS_file_name")
-        elif inList[0]  == CONST_CREATE:
+            print(" create s3_file_name")
+            print(" read SUFS_file_name")
+            print(" list SUFS_file_name\n")
+        elif ((inList[0]  == CONST_CREATE) and (len(inList) == 2)):
             createCMD(inList[1], bucket) #have to pass in object bucket here so its reachable
-        elif inList[0] == CONST_READ:
+        elif ((inList[0] == CONST_READ) and (len(inList) == 2)):
             readCMD(inList[1])
-        elif inList[0] == CONST_LIST:
+        elif ((inList[0] == CONST_LIST) and (len(inList) == 2)):
             listCMD(inList[1])
+        elif inList[0] == "":
+            doNothing = 0
         else:
             print("Inproper syntax")
-            print("\"SUFS$ help\" for more options")   
+            print("SUFS$ help for more options\n") 
 
 #########COMMAND LINE FUNCTIONS STUBS#########
 
