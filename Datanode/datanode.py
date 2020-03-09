@@ -44,7 +44,7 @@ def readBlock(fileName):
 #Recieve blocks and save them to local folder
 @app.route('/blocks/', methods=['PUT', 'POST'])
 def writeBlocks():
-    if (methods == PUT):
+    if (request.method == 'PUT'):
         #Check for local folder
         if not os.path.exists(UPLOAD_DIRECTORY):
             os.makedirs(UPLOAD_DIRECTORY)
@@ -77,7 +77,7 @@ def writeBlocks():
         
         # Return 201 CREATED
         return "", 201
-    if (methods == POST):
+    if (request.method == 'POST'):
         # hacky trigger to forward block
         blockList = getBlockNames(fileName)
         forwardBlocks(blockList, CONST_REP_FAC)
