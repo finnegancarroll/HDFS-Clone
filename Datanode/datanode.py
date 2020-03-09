@@ -79,8 +79,11 @@ def writeBlocks():
         return "", 201
     if (request.method == 'POST'):
         # hacky trigger to forward block
-        blockList = getBlockNames(fileName)
-        forwardBlocks(blockList[-1], 1)
+        for key in files_dict:
+            blockList = getBlockNames(key)
+            forwardBlocks(blockList[-1], 1)
+        return "", 201
+
   
 #Update Inode with new block data
 def updateInode():
