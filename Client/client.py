@@ -103,11 +103,11 @@ def readCMD(filename):
     totalBlocks = fileInfo["blocks"]
     
     print("Downloading Blocks")
+    print("DATANODE DNS: " + dataNodeDNS)
     
     for i in range(0, totalBlocks):
         blockName = fileNameSplit[0] + '_' + str(i + 1) + '.' + fileNameSplit[1]
-        print(blockName)
-        r = req.get("http://" + "ec2-54-212-45-47.us-west-2.compute.amazonaws.com" + ":8000/blocks/" + blockName)
+        r = req.get("http://" + dataNodeDNS + ":8000/blocks/" + blockName)
         
         #Save block to download dir with block name
         file = open(CONST_DOWN + blockName, "wb")
