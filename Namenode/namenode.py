@@ -6,12 +6,14 @@ import json
 import threading
 import random
 
+#Messages consumed at once
 MSG_IN_RATE = 10
-
-#Time it takes for a node to timeout in seconds
-#THESE WILL NEED TO BE CHANGED BEFORE DEMO, UPDATE TIME IS SUPPOSED TO BE 30 AND TIMEOUT IS UP TO US??? DOUBLE CHECK TIMEOUT
-CONST_SLEEP_INTERVAL = 20
+#Time between updates
+CONST_SLEEP_INTERVAL = 10
+#How frequently the SQS updates
 CONST_SQS_POLL_RATE = 10
+#How many CONST_SLEEP_INTERVALs before we consider a node dead
+#So CONST_TIMEOUT * CONST_SLEEP_INTERVAL = about time in seconds till datanode is considered dead 
 CONST_TIMEOUT = 2
 
 app = Flask(__name__)
@@ -111,7 +113,8 @@ def getDNFile(filename):
         datanodeDNS = datanodeDNS.replace(char, "")
 
     resultDict = {'dns' : datanodeDNS, 'blocks' : totalBlocks}
-    return json.dumps(resultDict)
+    
+    return json.dumps(resultDict), "200"
 
 
 if __name__ == "__main__":
