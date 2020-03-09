@@ -20,7 +20,7 @@ CONST_LIST = "list"
 
 #Block size in MB
 ###########################DONT FORGET TO CHANGE THIS BACK!!!
-CONST_BLOCK_SIZE = 0.5
+CONST_BLOCK_SIZE = 128
 
 #Bytes per MB
 CONST_BYTES_PER_MB = 1000000
@@ -56,7 +56,7 @@ def main():
         elif inList[0] == "":
             doNothing = 0
         else:
-            print("Inproper syntax")
+            print("Improper syntax")
             print("SUFS$ help for more options\n") 
 
 #########COMMAND LINE FUNCTIONS STUBS#########
@@ -102,9 +102,9 @@ def readCMD(filename):
     dataNodeDNS = fileInfo["dns"]
     totalBlocks = fileInfo["blocks"]
     
+    #get first dns in dataNodeDNS 
     print("Downloading Blocks")
     dns = dataNodeDNS.split(',')[0]
-    print(dns)
     for i in range(0, totalBlocks):
         blockName = fileNameSplit[0] + '_' + str(i + 1) + '.' + fileNameSplit[1]
         r = req.get("http://" + dns + ":8000/blocks/" + blockName)

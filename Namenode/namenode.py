@@ -10,9 +10,9 @@ import requests as req
 #Messages consumed at once
 MSG_IN_RATE = 10
 #Time between updates
-CONST_SLEEP_INTERVAL = 10
+CONST_SLEEP_INTERVAL = 15
 #How frequently the SQS updates
-CONST_SQS_POLL_RATE = 10
+CONST_SQS_POLL_RATE = 15
 #How many CONST_SLEEP_INTERVALs before we consider a node dead
 #So CONST_TIMEOUT * CONST_SLEEP_INTERVAL = about time in seconds till datanode is considered dead 
 CONST_TIMEOUT = 3
@@ -71,8 +71,6 @@ def check_queue():
                         pass
             replicateNode()
 
-        # print("FILES: ")
-        # print(files_dict)
         #Sleep till the next 
         time.sleep(CONST_SLEEP_INTERVAL - time.time() % CONST_SLEEP_INTERVAL)
 
@@ -96,7 +94,6 @@ def parse_heartbeat_messages(msgDict):
 
 def replicateNode():
     replicationNode = list(datanodes_dict.keys())[0]
-    print("REPLICATING USING: " + replicationNode)
     r = req.post("http://" + replicationNode + ":8000/blocks/") #need to send filename
 
 thread = threading.Thread(target=check_queue)
@@ -135,7 +132,6 @@ def getDNFile(filename):
         datanodeDNS = datanodeDNS.replace(char, "")
 
     resultDict = {'dns' : datanodeDNS, 'blocks' : totalBlocks}
-    # print ("RESULT DICT: " + resultDict)
     return json.dumps(resultDict), "200"
 
 
