@@ -92,17 +92,30 @@ def readCMD(filename):
     #CURRENTLY FUNCTION GETS THE DESIGNATED FILE FROM HARD CODED DATANODE
     #IN FUTURE WILL NEED TO GET DATANODE AND NUMBER OF BLOCKS FROM NAMENODE
     
-    dataNodeDNS =  "ec2-54-212-45-47.us-west-2.compute.amazonaws.com" 
+    # dataNodeDNS =  "ec2-54-212-45-47.us-west-2.compute.amazonaws.com" 
     
-    r = req.get("http://" + dataNodeDNS + ":8000/blocks/" + filename)
-    
-    #Save block to upload dir with block name
-    file = open(CONST_DOWN + filename, "wb")
-    file.write(r.content)
-    file.close()
-    print(r)
+    # r = req.get("http://" + dataNodeDNS + ":8000/blocks/" + filename)
+    fileInfo = getFileInfo(filename)
+    dns = fileInfo["dns"]
+    totalBlocks = fileInfo["blocks"]
+
+    print ("the dns: ", dns)
+    print ("total blcoks ", totalBlocks)
+
+    # #Save block to upload dir with block name
+    # file = open(CONST_DOWN + filename, "wb")
+    # file.write(r.content)
+    # file.close()
+    # print(r)
 
 #########HELPER FUNCTIONS#########
+
+def getFileInfo(filename):
+    r = req.get("http://" + getNameNodeAddress() + ":8000/blocks/" + filename).text
+    reqToString = str(r)
+    fixReqFormat = reqToString.replace("'", "\"")
+    reqToJSON = json.loads(fixReqFormat)
+    return reqToJSON
 
 #Print the file/datanode/block string returned from namenode
 def formatList(outList, fileName):

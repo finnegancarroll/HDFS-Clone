@@ -91,5 +91,28 @@ def getNode():
     addr = random.choice(tempDNList)
     return addr, "200"
 
+# given filename, return datanode containing file
+@app.route('/blocks/<string:filename>', methods=['GET'])
+def getDNFile(filename):
+    allFiles = files_dict
+    currFileDict = allFiles[filename]
+    
+    totalBlocks = 0
+    for x in currFileDict:
+        totalBlocks += 1
+
+    # for the current filename, get the first DNS (all blocks should be on this)
+    valueList = list(currFileDict.values())
+    datanodeDNS = str(valueList[1])
+
+    #Delete grabage chars of the dict and list
+    removeThese = {']', '[', "'"}
+    for char in removeThese:
+        datanodeDNS = datanodeDNS.replace(char, "")
+
+    resultDict = {'dns' : datanodeDNS, 'blocks' : totalBlocks}
+    return json.dumps(resultDict)
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
