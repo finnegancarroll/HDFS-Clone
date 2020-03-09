@@ -1,6 +1,4 @@
-#SUFS Client program
-
-from fsplit.filesplit import FileSplit #pip3 install filesplit or pip2 install fsplit
+from fsplit.filesplit import FileSplit
 from flask import request
 import requests as req
 from os import path
@@ -22,7 +20,7 @@ CONST_LIST = "list"
 
 #Block size in MB
 ###########################DONT FORGET TO CHANGE THIS BACK!!!
-CONST_BLOCK_SIZE = .5
+CONST_BLOCK_SIZE = 128
 
 #Bytes per MB
 CONST_BYTES_PER_MB = 1000000
@@ -76,7 +74,12 @@ def createCMD(fileName, bucket):
     namenode_req = "%s" %temp_req
 
     #Upload file blocks
-    sendBlocks(namenode_req, getBlockNames(fileName), fileName)
+    status_code = sendBlocks(namenode_req, getBlockNames(fileName), fileName)
+    
+    #Delete local blocks
+    deleteBlocks(getBlockNames(fileName))
+
+    print("Status Code: " + str(status_code))
 
 #$list "filename"
 #Prints file, blocks, and block locations for filename
@@ -84,7 +87,8 @@ def listCMD(filename):
     #Get request returns dictionary of all blocks and datanodes
     r = req.get("http://" + getNameNodeAddress() + ":8000/files")
     formatList(r.text, filename)
-  
+    print("Status Code: " + str(r.status_code))
+
 #$read "filename"
 #Download file from SUFS onto LOCAL machine
 def readCMD(filename):
@@ -121,6 +125,7 @@ def readCMD(filename):
 
 #########HELPER FUNCTIONS#########
 
+#Gets the number of blocks and datanode associated with a file on the SUFS
 def getFileInfo(filename):
     r = req.get("http://" + getNameNodeAddress() + ":8000/blocks/" + filename).text
     reqToString = str(r)
@@ -160,6 +165,7 @@ def formatList(outList, fileName):
             print(field)
         i += 1
 
+#Sends all blocks to datanode at address
 def sendBlocks(address, blockList, fileName):
     files = {}
 
@@ -178,7 +184,7 @@ def sendBlocks(address, blockList, fileName):
     #Send to designated Datanode
     url = "http://" + address + ":" + str(CONST_DATANODE_PORT) + "/blocks/"
     r = req.put(url, files=files, data=values)
-    print(r.status_code)
+    return r.status_code
 
 #Splits a file in the downloads folder into blocks
 #Original file deleted
@@ -230,6 +236,6 @@ def getNameNodeAddress():
 def initDirs():   
     if not os.path.exists(CONST_DOWN):
         os.makedirs(CONST_DOWN)
-   
+
 if __name__ == '__main__':
     main()
