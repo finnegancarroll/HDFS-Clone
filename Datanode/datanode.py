@@ -11,11 +11,10 @@ import os
 
 app = Flask(__name__)
 
-##TESTING VARIABLES, CHANGE FOR DEMO#####################
-#CHECK WHAT DAVE WANTS FOR THIS LATER~!
-CONST_INTERVAL = 15
+#Interval at which we send block report/heartbeat
+CONST_INTERVAL = 30
 #REP FAC 1 FOR TESTING ONLY, CHANGE BEFORE DEMO!!!
-CONST_REP_FAC = 0
+CONST_REP_FAC = 3
 
 UPLOAD_DIRECTORY = "Blocks/"
 CONST_PEM_KEY = "cpsc4910_1.pem"
