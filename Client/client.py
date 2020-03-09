@@ -88,24 +88,14 @@ def listCMD(filename):
 #$read "filename"
 #Download file from SUFS onto LOCAL machine
 def readCMD(filename):
-
-    
     r = req.get("http://" + "ec2-54-212-45-47.us-west-2.compute.amazonaws.com" + ":8000/blocks/")
-    
-    print(r.text)
-    print(r)
-    #print(r.text)
-    #Read all the blocks the file into downloads folder
-   
-    
-    
-    
+    retDict = r.json()
+    print(len(retDict['File']))
     
 #########HELPER FUNCTIONS#########
 
 #Print the file/datanode/block string returned from namenode
 def formatList(outList, fileName):
-    print(outList)
     
     #Delete grabage chars
     removeThese = {':' , '{', ']' , '[' , ':' , ',' , ' '}
