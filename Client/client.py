@@ -103,7 +103,7 @@ def readCMD(filename):
     totalBlocks = fileInfo["blocks"]
     
     print("Downloading Blocks")
-    print("DATANODE DNS: " + dataNodeDNS)
+    print("DATANODE DNS: " + dataNodeDNS[0]a)
     
     for i in range(0, totalBlocks):
         blockName = fileNameSplit[0] + '_' + str(i + 1) + '.' + fileNameSplit[1]
