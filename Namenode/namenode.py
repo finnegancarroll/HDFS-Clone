@@ -135,7 +135,7 @@ def getDNFile(filename):
         datanodeDNS = datanodeDNS.replace(char, "")
 
     resultDict = {'dns' : datanodeDNS, 'blocks' : totalBlocks}
-    print ("RESULT DICT: " + resultDict)
+    # print ("RESULT DICT: " + resultDict)
     return json.dumps(resultDict), "200"
 
 
