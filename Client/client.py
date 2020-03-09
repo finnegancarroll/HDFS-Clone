@@ -95,9 +95,15 @@ def readCMD(filename):
     dataNodeDNS =  "ec2-54-212-45-47.us-west-2.compute.amazonaws.com" 
     
     r = req.get("http://" + dataNodeDNS + ":8000/blocks/" + filename)
-    file = open(CONST_DOWN + filename, "w+")
-    file.write(r.text)
+    
+    #Save block to upload dir with block name
+    file = open(CONST_DOWN + filename, "wb")
+    file.write(r.content)
     file.close()
+    
+    #file = open(CONST_DOWN + filename, "w+")
+    #file.write(r.text)
+    #file.close()
     print(r)
 
 #########HELPER FUNCTIONS#########
