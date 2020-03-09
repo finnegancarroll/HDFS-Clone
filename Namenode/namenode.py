@@ -19,7 +19,11 @@ CONST_TIMEOUT = 4
 
 app = Flask(__name__)
 sqs = boto3.resource('sqs')
-sqs.purge_queue('https://sqs.us-west-2.amazonaws.com/494640831729/heartbeat')
+sqsclient = boto3.client('sqs')
+try:
+    sqsclient.purge_queue(QueueUrl='https://sqs.us-west-2.amazonaws.com/494640831729/heartbeat')
+except:
+    pass
 heartbeat_queue = sqs.Queue('https://sqs.us-west-2.amazonaws.com/494640831729/heartbeat')
 #Dictionary of datanodes by key DNS name
 datanodes_dict = {}

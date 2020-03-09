@@ -12,7 +12,7 @@ import os
 app = Flask(__name__)
 
 #Interval at which we send block report/heartbeat
-CONST_INTERVAL = 30
+CONST_INTERVAL = 22
 #Additional nodes to forward blocks to
 CONST_REP_FAC = 2
 
