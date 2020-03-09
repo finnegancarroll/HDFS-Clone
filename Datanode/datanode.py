@@ -79,9 +79,9 @@ def writeBlocks():
         return "", 201
     if (request.method == 'POST'):
         # hacky trigger to forward block
-        for key in files_dict:
-            blockList = getBlockNames(key)
-            forwardBlocks(blockList[-1], 1)
+        fileName = request.values['fileName']
+        blockList = getBlockNames(fileName)
+        forwardBlocks(blockList[-1], 1)
         return "", 201
 
   
