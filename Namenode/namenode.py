@@ -9,7 +9,7 @@ import random
 #Messages consumed at once
 MSG_IN_RATE = 10
 #Time between updates
-CONST_SLEEP_INTERVAL = 10
+CONST_SLEEP_INTERVAL = 20
 #How frequently the SQS updates
 CONST_SQS_POLL_RATE = 10
 #How many CONST_SLEEP_INTERVALs before we consider a node dead
@@ -56,6 +56,10 @@ def check_queue():
         #Actually remove the dead nodes from the dict
         for key in delKeys:
             del datanodes_dict[key]
+            #Remove dead nodes from being listed in the block ownership dict
+            for files_key in files_dict:
+                for files_subKey in files_dict[files_key]:
+                    files_dict[files_key][files_subKey].remove(key)
         
         #Sleep till the next 
         time.sleep(CONST_SLEEP_INTERVAL - time.time() % CONST_SLEEP_INTERVAL)
