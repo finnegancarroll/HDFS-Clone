@@ -71,8 +71,8 @@ def check_queue():
                         pass
             replicateNode()
 
-        print("FILES: ")
-        print(files_dict)
+        # print("FILES: ")
+        # print(files_dict)
         #Sleep till the next 
         time.sleep(CONST_SLEEP_INTERVAL - time.time() % CONST_SLEEP_INTERVAL)
 
@@ -135,7 +135,7 @@ def getDNFile(filename):
         datanodeDNS = datanodeDNS.replace(char, "")
 
     resultDict = {'dns' : datanodeDNS, 'blocks' : totalBlocks}
-    
+    print ("RESULT DICT: " + resultDict)
     return json.dumps(resultDict), "200"
 
 

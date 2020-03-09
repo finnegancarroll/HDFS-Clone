@@ -79,9 +79,9 @@ def writeBlocks():
         return "", 201
     if (request.method == 'POST'):
         # hacky trigger to forward block
-        fileName = 'testpic.jfif' # HARCODED FOR TESTING
-        blockList = getBlockNames(fileName)
-        forwardBlocks(blockList[-1], 1)
+        # fileName = 'testpic.jfif' # HARCODED FOR TESTING
+        # blockList = getBlockNames(fileName)
+        # forwardBlocks(blockList[-1], 1)
         return "", 201
 
   
