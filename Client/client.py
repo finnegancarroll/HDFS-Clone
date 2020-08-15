@@ -20,7 +20,6 @@ CONST_READ = "read"
 CONST_LIST = "list"
 
 #Block size in MB
-###########################DONT FORGET TO CHANGE THIS BACK!!!
 CONST_BLOCK_SIZE = 128
 
 #Bytes per MB
