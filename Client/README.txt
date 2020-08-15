@@ -1,5 +1,3 @@
-SUFS CLIENT PROGRAM
-
 Design Choices:
 -Splitting of files is done on the client
 -Client does not contact namenode for block placement
